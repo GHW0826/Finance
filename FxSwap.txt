@@ -1,0 +1,113 @@
+FX Swap
+“Spot → Forward” 두 번의 통화교환으로 만드는 단기 유동성·환리스크 관리 도구
+
+1. 정의 & 경제적 의의
+포인트			설명
+구조			거래 당사자가 거래일(T₀) 에 현물환(spot)으로 두 통화를 교환(▶ Near leg)하고, 
+			미래 날짜(T₁) 에 미리 약정한 선물환(outright forward) 환율로 완전히 되돌려 교환(◀ Far leg). 
+			두 트랜잭션을 묶어 한 “Swap”으로 취급 
+주요 용도			① 단기 외화 조달/투자 ― 예: 달러가 필요한 은행이 원화를 빌려주고 달러를 빌려오는 구조.
+			② 환율 노출(spot) 제거 ― 실물수입업체가 특정 결제일까지 환율 확정.
+			③ 차익거래 ― Covered interest arbitrage, FX basis 거래.
+만기			O/N–12M 가 일반적. 1Y 넘어가면 “Currency swap(쿠폰·이자 교환)” 으로 분류.
+시장 규모			BIS OTC 통계: 2024년 말 잔액 USD ≈ 75 조 (전체 FX 파생 중 최대 비중) 
+
+
+
+2. 레그(leg) 구조 & 표준 텐어
+용어				의미							계산 기준일
+Near leg / Spot leg		2 영업일 후(일반 G10) 실물 교환·결제				T₀ + 2D (JPY–USD = T₀ + 2D, CNH = T₀ + 2D 등 로컬 관습)
+Far leg / Forward leg		이후 특정 날짜(T₁) 동일 금액을 되돌려 교환			T₁ 예: 1W, 1M, 3M, 6M…
+“ON/TN”, “TN/SN”, “Spot/Next”	O/N ↔ T/N (내일–모레), T/N ↔ S/N 등 초단기 유동성 스왑		특수 당일결제 듀레이션
+
+실무 booking : 대부분 시스템이 “Forward 2건” 으로 분개 → Net MtM = Forward₁ – Forward₂.
+
+
+3. 가격결정 (Forward Points)
+𝐹 = 𝑆 × (1 + 𝑟𝑑 × 𝑡 / 360) / (1 + 𝑟𝑓 × 𝑡 / 360)
+S: 현물환율, 
+F: Far leg 환율, 
+𝑟𝑑, 𝑟𝑓  : 각 통화 무위험 금리, 
+t: 만기 일수
+Forward points = 𝐹 − 𝑆 (주로 pips 표현).
+
+마진·레버리지 없어 Zero-PV 시작 → 거래 초기 현금흐름 0.
+
+
+
+4. 현금흐름 예시 (USD/KRW 3M Swap)
+일정		USD 흐름		KRW 흐름			설명
+T₀ (Spot)		+10 M		− 13.5 Bn (예: 1,350)		기관 A 달러차입
+3M (Forward)	−10 M		+13.58 Bn (Forward pts 포함 1,358)	원화 반환·달러 상환
+
+총 캐시플로우 = 각 통화별 Net 0 (Spot + Forward 반대방향). 실질 비용은 금리 차이.
+
+
+
+5. 결제(Settlement)·리스크
+Herstatt Risk – 타임존차로 한 쪽 통화만 먼저 결제될 위험.
+완화책 : CLS Bank (결제 동시성)·PvP, bilateral netting.
+결제 지침: ICE FXC, ISDA 1998 FX Definitions & 2021 Update.
+
+
+
+6. 회계 처리 (IFRS 9 중심)
+단계		회계이슈									분개 (예시·기능통화 KRW)
+초기 인식		무현금 파생 → 공정가치 거의 0						Dr Derivative (Asset) 0 / Cr Derivative (Liab) 0
+측정		FVTPL이 기본. 매 reporting 일 MtM						ΔFair Value → P&L ‘Net trading income’
+스팟레그		Spot 교환 발생 시 두 통화 현금·예금 잔액 재분류					Dr USD Cash / Cr KRW Cash 등
+헤지회계		예측 외화현금흐름 헤지 시 Cash-Flow Hedge 지정 가능 → 유효부분 OCI 누적		PwC 사례 ﻿
+결제 후		Far leg 정산·파생 종료, OCI 누적 금액을 헤지되는 현금흐름이 P/L 영향 시 재분류	IFRS 9 6.5.11 & IE 예시 ﻿
+
+
+T-Account 관점 : BIS 분석은 FX Swap을 단기 담보부 차입/대출 로 간주했을 때 재무제표 “보이지 않는 부채”(missing debt) 가 생성될 수 있음을 설명 ﻿
+US GAAP (ASC 815) : 기본적으로 동일하게 FVTPL, OCI 헤지 처리 가능; 효과성 시험 방법론 차이 존재.
+
+
+
+7. Treasury 시스템(톰, 뱅크·기업) 실무 처리 절차
+거래등록 : ‘Swap’ ticket 또는 ‘Spot+Fwd 2건’ 로 분해.
+Netting & CLS 파라미터 지정(페널티·cut-off).
+MtM / VAR : PV 01·Basis risk 관리.
+파생 LGD·EAD : SA-CCR 로 위험가중자산 산출 (레그별 추가 Collateral haircut).
+헤지 문서화 : 실효성 테스트(Prospective 80–125 %·Retrospective R-squared 등).
+
+
+
+8. 주요 리스크
+종류			설명						관리방안
+FX basis			단기 금리+유동성 스프레드 변동			CME Cleared swap, basis point value 모니터링
+Counterparty credit	Forward leg 만기까지 MTM+add-on 노출		CSA 마진콜, CLS
+Funding gap		Near leg 결제통화 조달 실패				Intraday credit line, repo 대체
+
+
+
+9. 규제 & 보고
+Basel III CVA / SA-CCR : 규제 자본 산출 시 FX Swap → Maturity Factor = 1.5 year cap.
+EMIR / Dodd-Frank : Clearing 면제(최대 30 일) 단기물 예외, TR 보고 의무.
+IFRS 7 : 레벨 2 공정가치 계층, notional & credit-risk 정보 주석 공시.
+
+
+
+10. 시장 관행 & 견적 포인트
+Forward 포인트 : 소수점 4자리, ‘premium/discount’ 표현.
+Value date roll-over : 금요일 NY closing 후 → 다음 영업일 기준 (은행휴일 조정).
+Holiday convention : Modified-Following (USD, EUR), Preceding (JPY 연휴).
+Quotation : “USD/JPY 3M +25/+28” (Bid/Offer 포인트).
+
+
+
+11. 요약 체크리스트 (실전 적용 시)
+ Spot·Forward 환율 확인 → IRP 기반 정합성 검증
+ CLS Cut-off & Hol calendar 맞추기
+ Hedge Designation 문서: Risk, Item, Instrument, Method 명확히
+ MtM Driver: S, IR Curve, Basis 스프레드 분리
+ SA-CCR EAD 업데이트 → RWA·LCR 영향 점검
+ 결산 전 OCI 재분류 Schedule 검증
+
+
+
+더 파고들면 좋을 주제
+Cross-Currency Swap(쿠폰 교환) vs FX Swap 세부 회계 차이
+파생 CVA/Hedge 회계 균형 설계
+FX Swap-Repo 복합 조달전략 (하이브리드 포지션)
