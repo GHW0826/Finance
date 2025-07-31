@@ -1,0 +1,36 @@
+
+SPT (Spot), Fwd(Forward), SWAP(Near, Far), CRS(Near, Far)
+- 외환,스왑 거래는 "하나의 계약 = 2개 이상의 결제 (Value Date)별 레드(leg)" 구조로 저장됨.
+
+- Spot(SPT)
+현금 흐름 구조				레그 개수, Value Date
+원금 교환 1회 (통화 A - 통화 B)		1 lag, 거래일 D + 2B
+
+- Forward  (FWD)
+현금 흐름 구조				레그 개수, Value Date
+Spot과 동일한 구조				1 lag, D + n 영업일, 월
+미래의 고정 환율로 원금 교환
+
+
+
+- FX Swap Near
+현금 흐름 구조				레그 개수, Value Date
+초기 (Spot)교환				1lag, NearDate = D + 2
+금리, Basis 반영된 환율
+
+- FX Swap Far
+현금 흐름 구조				레그 개수, Value Date
+만기 재교환				1lag, FarDate = D + m
+Forward Pts로 환율 결정
+
+
+
+- CRS Near
+현금 흐름 구조				레그 개수, Value Date
+원금 교환 (통화 A - 통화 B)			1lag, NearDate = D + 2 (보통 T+2)
+받은 통화 기준 이자 지급 시작
+
+- CRS Far
+현금 흐름 구조				레그 개수, Value Date
+만ㄱ니 원금 재교환				1lag, FarDate = Tenor End
+이자 레그 종료
